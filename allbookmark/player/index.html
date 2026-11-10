@@ -14,9 +14,9 @@
 <body>
 <!--
   모두의 북마크 앱이 피드 영상을 앱 안에서 보여 줄 때 여는 페이지다.
-  유튜브 공식 퍼가기 플레이어(IFrame Player API)를 띄우고, 재생 상태를 앱에 알린다.
+  유튜브 공식 퍼가기 플레이어(IFrame Player API)를 띄우고, 재생 상태와 보는 자리(초)를 앱에 알린다.
   유튜브는 퍼가기 플레이어를 띄운 사이트 주소가 없으면 재생하지 않기도 해서, 앱이 이 주소로 연다.
-  아무것도 저장하거나 보내지 않는다.
+  보던 자리는 앱이 폰에 남긴다. 이 페이지는 아무것도 저장하거나 서버로 보내지 않는다.
 -->
 <div id="player"></div>
 <script>
@@ -24,11 +24,29 @@
   var params = new URLSearchParams(location.search);
   var videoId = params.get('v') || '';
   var loop = params.get('loop') === '1';
+  var start = Math.max(0, Math.floor(Number(params.get('start')) || 0));
   var player = null;
+  var PLAYING = 1;
+  var PROGRESS_MS = 5000;
 
   function send(message) {
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(message));
   }
+
+  // 보는 자리. 어느 영상의 자리인지 함께 보내, 다음 영상으로 바뀌는 사이에 온 값이 섞이지 않게 한다.
+  function where() {
+    if (!player || !player.getCurrentTime || !player.getVideoData) return {};
+    var data = player.getVideoData() || {};
+    return { v: data.video_id || '', t: player.getCurrentTime() || 0, d: player.getDuration() || 0 };
+  }
+
+  setInterval(function () {
+    if (player && player.getPlayerState && player.getPlayerState() === PLAYING) {
+      var w = where();
+      w.type = 'progress';
+      send(w);
+    }
+  }, PROGRESS_MS);
 
   function validId(id) {
     return /^[A-Za-z0-9_-]{11}$/.test(id);
@@ -41,6 +59,7 @@
 
   function playerVars(id) {
     var vars = { autoplay: 1, playsinline: 1, rel: 0, origin: location.origin };
+    if (start > 0) vars.start = start;
     if (loop) {
       vars.loop = 1;
       vars.playlist = id;
@@ -60,7 +79,10 @@
           e.target.playVideo();
         },
         onStateChange: function (e) {
-          send({ type: 'state', state: e.data });
+          var w = where();
+          w.type = 'state';
+          w.state = e.data;
+          send(w);
         },
         onError: function (e) {
           send({ type: 'error', code: e.data });
@@ -69,16 +91,19 @@
     });
   };
 
-  // 앱이 다음 영상으로 바꾸거나, 앱을 내릴 때 멈춘다.
+  // 앱이 다음 영상으로 바꾸거나(보던 자리부터), 처음부터 다시 틀거나, 앱을 내릴 때 멈춘다.
   window.allbookmark = {
-    load: function (id) {
+    load: function (id, from) {
       if (!player || !player.loadVideoById || !validId(id)) return;
       if (loop) {
         player.loadPlaylist({ playlist: [id], index: 0 });
         player.setLoop(true);
       } else {
-        player.loadVideoById(id);
+        player.loadVideoById({ videoId: id, startSeconds: Math.max(0, Math.floor(Number(from) || 0)) });
       }
+    },
+    seek: function (seconds) {
+      if (player && player.seekTo) player.seekTo(Math.max(0, Number(seconds) || 0), true);
     },
     pause: function () {
       if (player && player.pauseVideo) player.pauseVideo();
