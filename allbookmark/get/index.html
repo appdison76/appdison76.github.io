@@ -51,11 +51,11 @@
   document.getElementById('web').href = web;
   var go = document.getElementById('go');
   if (/android/i.test(navigator.userAgent)) {
-    // 안드로이드: 앱 안 브라우저(인스타 등)에서도 Play 스토어 앱을 바로 열고, 안 되면 웹 페이지로
+    // 안드로이드: 버튼을 누르면 앱 안 브라우저(인스타 등)에서도 Play 스토어 앱을 열고, 안 되면 웹 페이지로
+    // (자동 이동은 하지 않음 — 들어오자마자 '앱에서 열기' 창이 뜨지 않게, 사람이 버튼을 누를 때만)
     var intent = 'intent://details?id=' + PKG + '&referrer=' + referrer +
       '#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=' + encodeURIComponent(web) + ';end';
     go.href = intent;
-    setTimeout(function () { location.href = intent; }, 400);
   } else {
     go.href = web;
   }
