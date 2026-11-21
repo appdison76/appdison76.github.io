@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모두의 북마크 받기</title>
+<meta name="description" content="유튜브·인스타·틱톡·기사·쇼핑 링크를 공유 한 번에 저장하고 정리하는 앱. Google Play에서 무료로 받으세요.">
+<meta property="og:title" content="모두의 북마크 — 공유 한 번에 링크 저장">
+<meta property="og:description" content="유튜브·인스타·틱톡 저장을 한 곳에. 자동 분류 · AI 요약 · 알림 · 목록 공유. 가입 없이 무료.">
+<style>
+  :root { --red: #ef3b2a; --ink: #1f2328; --sub: #6b7280; --bg: #fff7f5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: var(--ink); background: var(--bg); }
+  main { width: 100%; max-width: 420px; padding: 40px 24px; text-align: center; }
+  .icon { width: 96px; height: 96px; border-radius: 24px; background: var(--red); margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(239,59,42,.25); }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  .lead { font-size: 17px; color: #374151; margin: 0 0 6px; line-height: 1.5; }
+  .chips { color: var(--sub); font-size: 14px; margin: 0 0 28px; }
+  .btn { display: block; width: 100%; padding: 18px 20px; border-radius: 14px; background: var(--red); color: #fff;
+    font-size: 18px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 20px rgba(239,59,42,.3); }
+  .btn:active { transform: translateY(1px); }
+  .alt { display: inline-block; margin-top: 16px; font-size: 14px; color: var(--sub); }
+  .search { margin-top: 28px; font-size: 13px; color: var(--sub); line-height: 1.6; }
+  .search b { color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <div class="icon" aria-hidden="true">
+    <svg width="44" height="56" viewBox="0 0 44 56"><path d="M2 2h40v52L22 40 2 54z" fill="#fff"/></svg>
+  </div>
+  <h1>모두의 북마크</h1>
+  <p class="lead">유튜브·인스타·틱톡·기사·쇼핑 링크,<br>공유 한 번에 저장하고 정리해요.</p>
+  <p class="chips">자동 분류 · AI 요약 · 알림 · 목록 공유 · 가입 없이 무료</p>
+
+  <a id="go" class="btn" href="https://play.google.com/store/apps/details?id=com.appdison76.allbookmark">Google Play에서 무료로 받기</a>
+  <a id="web" class="alt" href="https://play.google.com/store/apps/details?id=com.appdison76.allbookmark">버튼이 안 되면 여기를 눌러 주세요</a>
+
+  <p class="search">그래도 안 열리면 Play 스토어에서<br><b>‘모두의 북마크’</b>를 검색해 주세요.</p>
+</main>
+<script>
+(function () {
+  var PKG = 'com.appdison76.allbookmark';
+  // ?from=instagram 처럼 들어온 곳을 Play 콘솔 유입 경로(utm_source)로 넘긴다
+  var from = (new URLSearchParams(location.search).get('from') || 'site').replace(/[^a-z0-9_-]/gi, '').slice(0, 30) || 'site';
+  var referrer = encodeURIComponent('utm_source=' + from + '&utm_medium=social&utm_campaign=get_page');
+  var web = 'https://play.google.com/store/apps/details?id=' + PKG + '&referrer=' + referrer;
+  document.getElementById('web').href = web;
+  var go = document.getElementById('go');
+  if (/android/i.test(navigator.userAgent)) {
+    // 안드로이드: 앱 안 브라우저(인스타 등)에서도 Play 스토어 앱을 바로 열고, 안 되면 웹 페이지로
+    var intent = 'intent://details?id=' + PKG + '&referrer=' + referrer +
+      '#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=' + encodeURIComponent(web) + ';end';
+    go.href = intent;
+    setTimeout(function () { location.href = intent; }, 400);
+  } else {
+    go.href = web;
+  }
+})();
+</script>
+</body>
+</html>
